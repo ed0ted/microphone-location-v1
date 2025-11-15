@@ -15,11 +15,11 @@ triangle_positions:
   - [-0.075, 0.13, 0.0]   # Mic 1: Back-left (pointing up)
   - [-0.075, -0.13, 0.0]  # Mic 2: Front-left (pointing up)
 
-# Triangle direction vectors (all pointing upward, weighted by position for azimuth)
+# Triangle direction vectors (all pointing directly upward)
 triangle_vectors:
-  - [1.0, 0.0, 1.0]       # Mic 0: Right + Up
-  - [-0.5, 0.866, 1.0]    # Mic 1: Back-left + Up
-  - [-0.5, -0.866, 1.0]   # Mic 2: Front-left + Up
+  - [0.0, 0.0, 1.0]       # Mic 0: Up
+  - [0.0, 0.0, 1.0]       # Mic 1: Up
+  - [0.0, 0.0, 1.0]       # Mic 2: Up
 
 # Tetrahedron array: 4 microphones (for future use)
 tetrahedron_positions:
@@ -29,10 +29,10 @@ tetrahedron_positions:
   - [0.15, -0.09, -0.06]
 
 tetrahedron_vectors:
-  - [0.0, 0.0, 1.0]
-  - [0.0, 0.95, -0.32]
-  - [-0.87, -0.49, -0.32]
-  - [0.87, -0.49, -0.32]
+  - [0.0, 0.0, 1.0]       # Mic 0: Up
+  - [0.0, 0.0, 1.0]       # Mic 1: Up
+  - [0.0, 0.0, 1.0]       # Mic 2: Up
+  - [0.0, 0.0, 1.0]       # Mic 3: Up
 
 pga_voltage: 1.024
 ads_address: "0x48"

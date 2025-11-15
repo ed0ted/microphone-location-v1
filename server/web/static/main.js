@@ -16,6 +16,8 @@ const sceneElements = {
   camera: null,
   drone: null,
   droneTrail: null,
+  trueDrone: null,  // True position marker for simulation mode
+  trueDroneTrail: null,
   nodes: {},
   controls: null,
   gridBounds: null,
@@ -144,6 +146,42 @@ function initThree() {
   const droneTrail = new THREE.Line(trailGeometry, trailMaterial);
   scene.add(droneTrail);
 
+  // True drone position marker (for simulation mode) - GREEN
+  const trueDroneGeometry = new THREE.SphereGeometry(0.6, 32, 32);
+  const trueDroneMaterial = new THREE.MeshStandardMaterial({
+    color: 0x33ff33,
+    emissive: 0x11ff11,
+    emissiveIntensity: 0.6,
+    roughness: 0.3,
+    metalness: 0.7,
+    transparent: true,
+    opacity: 0.8,
+  });
+  const trueDrone = new THREE.Mesh(trueDroneGeometry, trueDroneMaterial);
+  trueDrone.castShadow = true;
+  trueDrone.position.set(0, 0, 0);
+  trueDrone.visible = false;  // Hidden by default
+  scene.add(trueDrone);
+
+  // True drone glow effect
+  const trueGlowGeometry = new THREE.SphereGeometry(0.9, 16, 16);
+  const trueGlowMaterial = new THREE.MeshBasicMaterial({
+    color: 0x55ff55,
+    transparent: true,
+    opacity: 0.3,
+  });
+  const trueGlow = new THREE.Mesh(trueGlowGeometry, trueGlowMaterial);
+  trueDrone.add(trueGlow);
+
+  // True drone trail
+  const trueTrailMaterial = new THREE.LineBasicMaterial({ color: 0x55ff55, transparent: true, opacity: 0.4 });
+  const trueTrailGeometry = new THREE.BufferGeometry();
+  const trueTrailPositions = new Float32Array(300 * 3);
+  trueTrailGeometry.setAttribute('position', new THREE.BufferAttribute(trueTrailPositions, 3));
+  const trueDroneTrail = new THREE.Line(trueTrailGeometry, trueTrailMaterial);
+  trueDroneTrail.visible = false;  // Hidden by default
+  scene.add(trueDroneTrail);
+
   // Store references
   sceneElements.renderer = renderer;
   sceneElements.scene = scene;
@@ -151,6 +189,8 @@ function initThree() {
   sceneElements.controls = controls;
   sceneElements.drone = drone;
   sceneElements.droneTrail = droneTrail;
+  sceneElements.trueDrone = trueDrone;
+  sceneElements.trueDroneTrail = trueDroneTrail;
 
   // Window resize handler
   window.addEventListener("resize", () => {
@@ -166,12 +206,21 @@ function initThree() {
     requestAnimationFrame(animate);
     controls.update();
     
-    // Pulsing glow effect
+    // Pulsing glow effect for estimated position
     if (glow) {
       glow.scale.set(
         1 + 0.1 * Math.sin(Date.now() * 0.003),
         1 + 0.1 * Math.sin(Date.now() * 0.003),
         1 + 0.1 * Math.sin(Date.now() * 0.003)
+      );
+    }
+    
+    // Pulsing glow effect for true position
+    if (trueGlow && trueDrone.visible) {
+      trueGlow.scale.set(
+        1 + 0.1 * Math.sin(Date.now() * 0.004),
+        1 + 0.1 * Math.sin(Date.now() * 0.004),
+        1 + 0.1 * Math.sin(Date.now() * 0.004)
       );
     }
     
@@ -394,8 +443,10 @@ function updateScene(data) {
 
   const position = data.position || [0, 0, 0];
   const nodeDetails = data.node_details || [];
+  const truePosition = data.true_position;
+  const simulationMode = data.simulation_mode || false;
 
-  // Update drone position
+  // Update drone position (estimated)
   sceneElements.drone.position.set(position[0], position[2], position[1]);
 
   // Update drone trail
@@ -410,6 +461,51 @@ function updateScene(data) {
     trailPositions[1] = position[2];
     trailPositions[2] = position[1];
     sceneElements.droneTrail.geometry.attributes.position.needsUpdate = true;
+  }
+
+  // Update true position (simulation mode)
+  if (simulationMode && truePosition) {
+    // Show toggle control
+    const toggleContainer = document.getElementById("true-pos-toggle-container");
+    if (toggleContainer) {
+      toggleContainer.style.display = "flex";
+    }
+    
+    // Update true position marker
+    const checkbox = document.getElementById("show-true-position");
+    const showTrue = checkbox ? checkbox.checked : true;
+    
+    if (sceneElements.trueDrone && sceneElements.trueDroneTrail) {
+      sceneElements.trueDrone.position.set(truePosition[0], truePosition[2], truePosition[1]);
+      sceneElements.trueDrone.visible = showTrue;
+      sceneElements.trueDroneTrail.visible = showTrue;
+      
+      // Update true drone trail
+      if (showTrue && data.present) {
+        const trueTrailPositions = sceneElements.trueDroneTrail.geometry.attributes.position.array;
+        for (let i = trueTrailPositions.length - 3; i >= 3; i -= 3) {
+          trueTrailPositions[i] = trueTrailPositions[i - 3];
+          trueTrailPositions[i + 1] = trueTrailPositions[i - 2];
+          trueTrailPositions[i + 2] = trueTrailPositions[i - 1];
+        }
+        trueTrailPositions[0] = truePosition[0];
+        trueTrailPositions[1] = truePosition[2];
+        trueTrailPositions[2] = truePosition[1];
+        sceneElements.trueDroneTrail.geometry.attributes.position.needsUpdate = true;
+      }
+    }
+  } else {
+    // Hide toggle control when not in simulation mode
+    const toggleContainer = document.getElementById("true-pos-toggle-container");
+    if (toggleContainer) {
+      toggleContainer.style.display = "none";
+    }
+    
+    // Hide true position marker
+    if (sceneElements.trueDrone && sceneElements.trueDroneTrail) {
+      sceneElements.trueDrone.visible = false;
+      sceneElements.trueDroneTrail.visible = false;
+    }
   }
 
   // Update drone visibility/opacity based on confidence
@@ -481,6 +577,17 @@ window.addEventListener("DOMContentLoaded", async () => {
   await loadConfig();
   initThree();
   setupViewControls();
+
+  // Setup true position toggle handler
+  const truePositionToggle = document.getElementById("show-true-position");
+  if (truePositionToggle) {
+    truePositionToggle.addEventListener("change", (e) => {
+      if (sceneElements.trueDrone && sceneElements.trueDroneTrail) {
+        sceneElements.trueDrone.visible = e.target.checked;
+        sceneElements.trueDroneTrail.visible = e.target.checked;
+      }
+    });
+  }
 
   // Initialize empty charts
   Plotly.newPlot("energy-chart", [{ x: [], y: [] }], {

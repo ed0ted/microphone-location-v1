@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import json
 import logging
 import math
 import threading
 import time
-from typing import Dict, Iterable, List
+from pathlib import Path
+from typing import Dict, Iterable, List, Optional
 
 import numpy as np
 
@@ -34,19 +36,37 @@ def normalize_energies(energies: Dict[int, float]) -> Dict[int, float]:
 
 
 class LocalizationEngine:
-    def __init__(self, config: FusionConfig, store: FrameStore):
+    def __init__(self, config: FusionConfig, store: FrameStore, simulation_state_file: str = "/tmp/drone_sim_state.json"):
         self.config = config
         self.store = store
         self.node_positions = {geom.node_id: np.array(geom.position, dtype=np.float32) for geom in config.nodes}
         self.velocity = np.zeros(3, dtype=np.float32)
         self.last_position = np.zeros(3, dtype=np.float32)
         self._stop = threading.Event()
+        self.simulation_state_file = Path(simulation_state_file)
 
     def start(self) -> None:
         threading.Thread(target=self._run, daemon=True).start()
 
     def stop(self) -> None:
         self._stop.set()
+    
+    def _read_true_position(self) -> Optional[List[float]]:
+        """Read true drone position from simulation state file (if available)."""
+        try:
+            if self.simulation_state_file.exists() and self.simulation_state_file.stat().st_size > 0:
+                with open(self.simulation_state_file, 'r') as f:
+                    content = f.read().strip()
+                    if not content:
+                        return None
+                    state = json.loads(content)
+                    return state.get('position', None)
+        except (json.JSONDecodeError, FileNotFoundError, PermissionError):
+            # File doesn't exist or is invalid - not in simulation mode
+            pass
+        except Exception as exc:
+            LOGGER.debug("Failed to read simulation state: %s", exc)
+        return None
 
     def _run(self) -> None:
         period = 1.0 / self.config.localization_rate_hz
@@ -67,10 +87,17 @@ class LocalizationEngine:
         energies = {node_id: float(frame.total_energy) for node_id, frame in frames.items()}
         normalized = normalize_energies(energies)
         present_nodes = [node_id for node_id, frame in frames.items() if frame.present]
+        
+        # Read true position from simulation file (if available)
+        true_position = self._read_true_position()
+        simulation_mode = true_position is not None
+        
         if not present_nodes:
             state = self.store.get_fusion_state()
             state.present = False
             state.confidence = 0.0
+            state.true_position = true_position
+            state.simulation_mode = simulation_mode
             return state
         best_point, best_err = self._grid_search(frames, normalized)
         refined = self._refine(best_point, frames, normalized)
@@ -98,6 +125,8 @@ class LocalizationEngine:
             confidence=max(0.0, 1.0 - best_err),
             error=float(best_err),
             node_details=node_details,
+            true_position=true_position,
+            simulation_mode=simulation_mode,
         )
         return fusion_state
 

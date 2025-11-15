@@ -103,8 +103,32 @@ Navigate to: **http://localhost:3000**
 You should see:
 - Node status showing real-time energy levels
 - Direction vectors updating based on drone position
-- 3D visualization with moving red drone marker
+- 3D visualization with moving red drone marker (estimated position)
+- **Green drone marker** (true position from simulation) - toggle on/off
 - Energy and confidence charts
+
+### Development Feature: True Position Visualization ✨
+
+When running audio simulation, the web interface automatically detects simulation mode and displays:
+
+**Visual Markers:**
+- 🔴 **Red Sphere**: Estimated position from the localization algorithm
+- 🟢 **Green Sphere**: Actual drone position from the simulator (ground truth)
+- **Blue Spheres**: Microphone node positions
+
+**Toggle Control:**
+- A "Show True Position" checkbox appears in the 3D view controls
+- Toggle on/off to show/hide the green marker and its trail
+- Enabled by default when simulation is detected
+
+**Benefits:**
+- Visually compare estimated vs. actual positions in real-time
+- Measure localization error distance
+- Evaluate algorithm performance under different conditions
+- Debug and tune the fusion algorithm parameters
+
+**Automatic Detection:**
+The toggle appears automatically when `drone_position_sim.py` is running (creates `/tmp/drone_sim_state.json`) and disappears when using real hardware.
 
 ---
 
@@ -221,6 +245,18 @@ This creates realistic directional cues that the DSP can detect.
 - Reduce `--rate` in `drone_position_sim.py` (try 10 Hz instead of 20)
 - Check node frame rate (`frame_hop_ms` in node config)
 - Check if all 3 nodes are needed (can test with just 2)
+
+### Problem: "Show True Position" toggle not appearing
+
+**Check:**
+1. Is `drone_position_sim.py` running?
+2. Does `/tmp/drone_sim_state.json` exist and contain valid data?
+   ```bash
+   cat /tmp/drone_sim_state.json
+   ```
+3. Is the fusion server reading the file? (Check server logs for "simulation_mode")
+
+The toggle appears automatically when simulation state is detected and hides when not available.
 
 ---
 

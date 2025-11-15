@@ -38,6 +38,8 @@ class FusionState:
     confidence: float = 0.0
     error: float = 0.0
     node_details: List[dict] = field(default_factory=list)
+    true_position: Optional[List[float]] = None  # For simulation mode - shows actual drone position
+    simulation_mode: bool = False  # Whether simulation state file exists
 
 
 class FrameStore:

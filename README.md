@@ -203,9 +203,9 @@ triangle_positions:
   - [-0.075, -0.13, 0.0]  # Mic 2: Front-Left
 
 triangle_vectors:
-  - [1.0, 0.0, 1.0]       # Right + Up
-  - [-0.5, 0.866, 1.0]    # Back-Left + Up
-  - [-0.5, -0.866, 1.0]   # Front-Left + Up
+  - [0.0, 0.0, 1.0]       # All point directly upward
+  - [0.0, 0.0, 1.0]       # Optimal for elevated sources (drones)
+  - [0.0, 0.0, 1.0]       # Horizontal direction from spatial diversity
 ```
 
 ### Tetrahedron Mode (4 Microphones)
