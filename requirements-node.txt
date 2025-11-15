@@ -1,0 +1,7 @@
+numpy
+scipy
+smbus2
+adafruit-circuitpython-ads1x15
+pyyaml
+uvloop
+orjson

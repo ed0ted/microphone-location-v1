@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Acoustic Drone Localization System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <script src="https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/js/controls/OrbitControls.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.30.0/plotly.min.js" defer></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" defer></script>
+    <script src="{{ url_for('static', filename='main.js') }}" type="module" defer></script>
+  </head>
+  <body>
+    <div class="layout">
+      <header>
+        <h1>🎯 Acoustic Drone Localization System</h1>
+        <div class="header-info">
+          <div id="status" class="status-badge">Connecting…</div>
+          <div id="mode-display" class="mode-badge">Triangle Mode (3 mics)</div>
+        </div>
+      </header>
+      
+      <main>
+        <!-- 3D Visualization Panel -->
+        <section class="panel scene-panel">
+          <div class="panel-header">
+            <h2>3D Position Tracking</h2>
+            <div class="view-controls">
+              <button id="view-top" class="view-btn" title="Top View">⬆️ Top</button>
+              <button id="view-side" class="view-btn" title="Side View">↔️ Side</button>
+              <button id="view-reset" class="view-btn active" title="Reset View">🔄 Reset</button>
+            </div>
+          </div>
+          <div id="scene" class="scene-container"></div>
+          <div class="scene-info">
+            <div id="position-display" class="info-item">
+              <strong>Position:</strong> <span id="pos-text">—</span>
+            </div>
+            <div id="confidence-display" class="info-item">
+              <strong>Confidence:</strong> <span id="conf-text">—</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Data Panel -->
+        <section class="panel data-panel">
+          <!-- Node Status Table -->
+          <div class="telemetry-section">
+            <h2>Node Status</h2>
+            <div id="telemetry">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Node ID</th>
+                    <th>Energy</th>
+                    <th>Direction (X,Y,Z)</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="node-table"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Charts Section -->
+          <div class="charts-section">
+            <div class="chart-container">
+              <h3>Total Energy</h3>
+              <div id="energy-chart" class="chart"></div>
+            </div>
+            <div class="chart-container">
+              <h3>Localization Confidence</h3>
+              <div id="confidence-chart" class="chart"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <div class="footer-content">
+          <span>Raspberry Pi Zero 2 W × 3 Nodes | Pi 5 Fusion Server</span>
+          <span id="update-time">Last update: —</span>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

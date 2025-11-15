@@ -1,0 +1,31 @@
+listen_host: 0.0.0.0
+listen_port: 5005
+localization_rate_hz: 20
+
+# Grid search parameters for 3D localization
+grid_bounds:
+  x: [-5, 25]
+  y: [-5, 25]
+  z: [0, 25]
+grid_step: 1.0
+
+# Localization algorithm parameters
+direction_weight: 0.3      # Weight for directional constraints
+detection_floor: 0.05      # Minimum energy threshold
+smoothing_alpha: 0.4       # Position smoothing (0=no smooth, 1=instant)
+smoothing_beta: 0.2        # Velocity smoothing
+
+# Node positions in global coordinate frame (meters)
+# Triangle arrangement: nodes at vertices of ~20m triangle
+nodes:
+  - node_id: 1
+    position: [0, 0, 1]      # Origin, 1m above ground
+  - node_id: 2
+    position: [20, 0, 1]     # 20m along X-axis
+  - node_id: 3
+    position: [0, 20, 1]     # 20m along Y-axis
+
+# Web interface settings
+web:
+  host: 0.0.0.0
+  port: 3000
