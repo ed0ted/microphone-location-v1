@@ -25,15 +25,59 @@ class BaseSampler(ABC):
 
 
 class SimulatedSampler(BaseSampler):
-    """Generates plausible microphone levels for bench testing."""
+    """Generates realistic microphone audio simulating a drone sound source."""
 
-    def __init__(self, sample_rate: int, channels: int = 3, noise_level: float = 0.02):
+    def __init__(self, sample_rate: int, channels: int = 3, noise_level: float = 0.02, config=None):
         super().__init__(sample_rate, channels)
         self._noise = noise_level
-        self._phase = np.zeros(self.channels)
-        self._rng = np.random.default_rng()
+        self._config = config
+        
+        # Try to use realistic drone audio simulator if config is available
+        if config is not None:
+            try:
+                from .drone_audio_sim import DroneAudioSimulator
+                
+                # Get node position and microphone positions from config
+                node_pos = config.global_position if config.global_position is not None else [0, 0, 0]
+                
+                # Get mic positions based on array mode
+                if config.array_mode == "triangle":
+                    mic_positions = config.triangle_positions
+                elif config.array_mode == "tetrahedron":
+                    mic_positions = config.tetrahedron_positions
+                else:
+                    mic_positions = [[0, 0, 0]] * channels
+                
+                # Only use realistic simulator if global_position is provided
+                if config.global_position is not None:
+                    self._audio_sim = DroneAudioSimulator(
+                        sample_rate=sample_rate,
+                        channels=channels,
+                        node_position=np.array(node_pos, dtype=np.float32),
+                        mic_positions=mic_positions[:channels] if mic_positions else [[0, 0, 0]] * channels,
+                        noise_level=noise_level,
+                    )
+                    LOGGER.info("Using realistic drone audio simulator for node at %s", node_pos)
+                else:
+                    LOGGER.info("global_position not set, using simple simulator")
+                    self._audio_sim = None
+            except Exception as exc:
+                LOGGER.warning("Failed to initialize realistic audio sim: %s. Using simple sim.", exc)
+                self._audio_sim = None
+        else:
+            self._audio_sim = None
+        
+        # Fallback simple simulator
+        if self._audio_sim is None:
+            self._phase = np.zeros(self.channels)
+            self._rng = np.random.default_rng()
 
     def read_block(self, samples: int) -> np.ndarray:
+        # Use realistic audio simulator if available
+        if self._audio_sim is not None:
+            return self._audio_sim.generate_block(samples)
+        
+        # Fallback to simple sine wave simulation
         t = np.arange(samples) / float(self.sample_rate)
         block = []
         base_freqs = np.array([110, 155, 210, 180], dtype=float)
@@ -107,7 +151,7 @@ class AdcSampler:
                 return
             except Exception as exc:
                 LOGGER.warning("Hardware sampler unavailable, falling back to simulator: %s", exc)
-        self._impl = SimulatedSampler(config.sampling.sample_rate, config.num_channels)
+        self._impl = SimulatedSampler(config.sampling.sample_rate, config.num_channels, config=config)
         LOGGER.info("Using simulated sampler with %d channels", config.num_channels)
 
     def read_block(self, samples: int) -> np.ndarray:

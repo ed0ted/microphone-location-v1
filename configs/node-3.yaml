@@ -1,6 +1,9 @@
 node_id: 3
-fusion_host: 192.168.50.1
+fusion_host: 127.0.0.1
 fusion_port: 5005
+
+# Global position of this node in surveillance area (meters)
+global_position: [0, 20, 1]  # 20m along Y-axis
 
 # Microphone array mode: "triangle" (3 mics) or "tetrahedron" (4 mics)
 array_mode: triangle

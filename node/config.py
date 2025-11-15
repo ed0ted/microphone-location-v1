@@ -29,6 +29,9 @@ class NodeConfig:
     fusion_port: int
     array_mode: str = "triangle"  # "triangle" or "tetrahedron"
     
+    # Global position of this node in surveillance area [x, y, z] in meters
+    global_position: List[float] | None = None
+    
     # Triangle array (3 mics)
     triangle_positions: Sequence[Sequence[float]] = dataclasses.field(default_factory=list)
     triangle_vectors: Sequence[Sequence[float]] = dataclasses.field(default_factory=list)

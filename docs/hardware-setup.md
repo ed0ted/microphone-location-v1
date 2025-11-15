@@ -416,13 +416,13 @@ cat configs/node-1.yaml | grep calibration_noise_rms
 python -m server.run_all --config configs/server.yaml --verbose
 
 # Terminal 2: Start Node 1
-python -m node.node_agent --config configs/node-1.yaml run --verbose
+python -m node.node_agent --config configs/node-1.yaml --verbose run
 
 # Terminal 3: Start Node 2
-python -m node.node_agent --config configs/node-2.yaml run --verbose
+python -m node.node_agent --config configs/node-2.yaml --verbose run
 
 # Terminal 4: Start Node 3
-python -m node.node_agent --config configs/node-3.yaml run --verbose
+python -m node.node_agent --config configs/node-3.yaml --verbose run
 
 # Open browser: http://192.168.50.1/
 # Should see 3D visualization with node markers

@@ -10,7 +10,7 @@ from ..config import FusionConfig
 from ..state_store import FrameStore
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading", logger=False, engineio_logger=False)
 STORE: FrameStore | None = None
 CONFIG: FusionConfig | None = None
 
@@ -19,6 +19,20 @@ def init_app(store: FrameStore, config: FusionConfig) -> None:
     global STORE, CONFIG
     STORE = store
     CONFIG = config
+
+
+@socketio.on("connect")
+def handle_connect():
+    import logging
+    logger = logging.getLogger("web-socketio")
+    logger.info("Client connected")
+
+
+@socketio.on("disconnect")
+def handle_disconnect():
+    import logging
+    logger = logging.getLogger("web-socketio")
+    logger.info("Client disconnected")
 
 
 @app.route("/")
@@ -49,9 +63,19 @@ def api_config():
 
 def _emit_loop():
     assert STORE is not None
+    import logging
+    logger = logging.getLogger("web-emit")
+    logger.info("Starting WebSocket emit loop")
+    
     while True:
-        socketio.emit("fusion_update", STORE.get_fusion_state().__dict__)
-        time.sleep(0.2)
+        try:
+            state = STORE.get_fusion_state()
+            if state:
+                socketio.emit("fusion_update", state.__dict__)
+            time.sleep(0.2)
+        except Exception as exc:
+            logger.error("Error in emit loop: %s", exc)
+            time.sleep(1.0)
 
 
 def start_background_emit() -> None:

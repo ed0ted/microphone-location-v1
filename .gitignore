@@ -1,2 +1,10 @@
 /.venv-server
 /venv-server
+/.venv-node
+/venv-node
+/venv
+
+
+# Python compiled files
+*.pyc
+__pycache__/

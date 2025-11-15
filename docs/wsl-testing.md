@@ -235,21 +235,21 @@ python -m server.run_all --config configs/server.yaml --verbose
 ```bash
 cd ~/projects/microphone-location-v2
 source venv-node/bin/activate
-python -m node.node_agent --config configs/node-1.yaml run --verbose
+python -m node.node_agent --config configs/node-1.yaml --verbose run
 ```
 
 ### Pane 3 — Node 2
 
 ```bash
 source venv-node/bin/activate
-python -m node.node_agent --config configs/node-2.yaml run --verbose
+python -m node.node_agent --config configs/node-2.yaml --verbose run
 ```
 
 ### Pane 4 — Node 3
 
 ```bash
 source venv-node/bin/activate
-python -m node.node_agent --config configs/node-3.yaml run --verbose
+python -m node.node_agent --config configs/node-3.yaml --verbose run
 ```
 
 Detach from tmux:
@@ -288,7 +288,7 @@ chmod +x launch-wsl.sh
 
 Open browser on Windows:
 
-👉 **[http://localhost:8080](http://localhost:8080)**
+👉 **[http://localhost:3000](http://localhost:3000)**
 
 You should see:
 
@@ -297,6 +297,55 @@ You should see:
 * Red drone marker (simulated path)
 * Node status table
 * Live metrics
+
+---
+
+## **7.1. Testing with Simulated Drone Sound**
+
+Instead of running actual nodes, you can use the built-in drone sound simulator to test the localization system:
+
+### Terminal 1: Start the Fusion Server
+
+```bash
+cd ~/projects/microphone-location-v2
+source venv-server/bin/activate
+python -m server.run_all --config configs/server.yaml --verbose
+```
+
+### Terminal 2: Run the Drone Simulator
+
+```bash
+cd ~/projects/microphone-location-v2
+source venv-server/bin/activate
+python scripts/simulate_drone.py --config configs/server.yaml --pattern circle --speed 2.0 --height 5.0
+```
+
+**Simulator Options:**
+- `--pattern`: Movement pattern - `circle`, `line`, `hover`, or `figure8` (default: `circle`)
+- `--speed`: Movement speed in m/s (default: 2.0)
+- `--height`: Fixed height in meters (default: 5.0)
+- `--radius`: Circle/pattern radius in meters (default: 8.0)
+- `--source-power`: Sound power level (default: 10.0)
+- `--rate`: Update rate in Hz (default: 10.0)
+- `--verbose`: Enable debug logging
+
+**Example: Simulate a hovering drone at 10m height:**
+```bash
+python scripts/simulate_drone.py --pattern hover --height 10.0
+```
+
+**Example: Simulate a fast-moving figure-8 pattern:**
+```bash
+python scripts/simulate_drone.py --pattern figure8 --speed 3.0 --radius 10.0
+```
+
+The simulator will:
+- Calculate realistic acoustic energy levels using inverse square law based on distance from each node
+- Generate direction vectors pointing from each node toward the drone
+- Send UDP packets to the fusion server at the specified rate
+- Animate the drone moving through the surveillance area
+
+You should see the red drone marker moving in the web interface matching the selected pattern!
 
 ---
 

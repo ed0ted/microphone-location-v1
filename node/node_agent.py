@@ -105,6 +105,12 @@ class NodeAgent:
         payload = packet.to_payload()
         try:
             self.socket.sendto(payload, self.endpoint)
+            if LOGGER.isEnabledFor(logging.DEBUG):
+                pkt_type = "heartbeat" if packet.extra and packet.extra.get("heartbeat") else "detection" if packet.present else "data"
+                LOGGER.debug(
+                    "Sent packet seq=%d type=%s present=%s energy=%.4f",
+                    packet.seq, pkt_type, packet.present, sum(packet.mic_rms)
+                )
         except OSError as exc:
             LOGGER.error("Failed to send packet: %s", exc)
 
