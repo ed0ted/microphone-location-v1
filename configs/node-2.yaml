@@ -1,52 +1,71 @@
 node_id: 2
 fusion_host: 127.0.0.1
 fusion_port: 5005
-
-# Global position of this node in surveillance area (meters)
-global_position: [20, 0, 1]  # 20m along X-axis
-
-# Microphone array mode: "triangle" (3 mics) or "tetrahedron" (4 mics)
 array_mode: triangle
-
-# Triangle array: 3 microphones in horizontal plane, pointing upward
-# Positioned in equilateral triangle with 15cm radius from center
+global_position:
+- 20
+- 0
+- 1
 triangle_positions:
-  - [0.15, 0.0, 0.0]      # Mic 0: Right (pointing up)
-  - [-0.075, 0.13, 0.0]   # Mic 1: Back-left (pointing up)
-  - [-0.075, -0.13, 0.0]  # Mic 2: Front-left (pointing up)
-
-# Triangle direction vectors (all pointing directly upward)
+- - 0.15
+  - 0.0
+  - 0.0
+- - -0.075
+  - 0.13
+  - 0.0
+- - -0.075
+  - -0.13
+  - 0.0
 triangle_vectors:
-  - [0.0, 0.0, 1.0]       # Mic 0: Up
-  - [0.0, 0.0, 1.0]       # Mic 1: Up
-  - [0.0, 0.0, 1.0]       # Mic 2: Up
-
-# Tetrahedron array: 4 microphones (for future use)
+- - 0.0
+  - 0.0
+  - 1.0
+- - 0.0
+  - 0.0
+  - 1.0
+- - 0.0
+  - 0.0
+  - 1.0
 tetrahedron_positions:
-  - [0.0, 0.0, 0.18]
-  - [0.0, 0.17, -0.06]
-  - [-0.15, -0.09, -0.06]
-  - [0.15, -0.09, -0.06]
-
+- - 0.0
+  - 0.0
+  - 0.18
+- - 0.0
+  - 0.17
+  - -0.06
+- - -0.15
+  - -0.09
+  - -0.06
+- - 0.15
+  - -0.09
+  - -0.06
 tetrahedron_vectors:
-  - [0.0, 0.0, 1.0]       # Mic 0: Up
-  - [0.0, 0.0, 1.0]       # Mic 1: Up
-  - [0.0, 0.0, 1.0]       # Mic 2: Up
-  - [0.0, 0.0, 1.0]       # Mic 3: Up
-
+- - 0.0
+  - 0.0
+  - 1.0
+- - 0.0
+  - 0.0
+  - 1.0
+- - 0.0
+  - 0.0
+  - 1.0
+- - 0.0
+  - 0.0
+  - 1.0
 pga_voltage: 1.024
-ads_address: "0x48"  # Each Pi Zero has only one ADS1115
+ads_address: '0x48'
 use_simulator: true
-
 sampling:
   frame_hop_ms: 100
   window_seconds: 1.6
   block_samples: 128
   sample_rate: 860
-
 network:
   host: 192.168.50.1
   port: 5005
   heartbeat_hz: 2.0
-
-calibration_noise_rms: [0.05, 0.05, 0.05]  # 3 mics for triangle mode
+calibration_noise_rms:
+- 0.265844
+- 1.325428
+- 0.621422
+mic_bias_mv: null
