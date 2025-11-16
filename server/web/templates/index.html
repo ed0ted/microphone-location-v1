@@ -4,7 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Acoustic Drone Localization System</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.30.0/plotly.min.js"></script>
@@ -20,66 +23,151 @@
           <div id="mode-display" class="mode-badge">Triangle Mode (3 mics)</div>
         </div>
       </header>
-      
-      <main>
-        <!-- 3D Visualization Panel -->
-        <section class="panel scene-panel">
-          <div class="panel-header">
-            <h2>3D Position Tracking</h2>
-            <div class="view-controls">
-              <button id="view-top" class="view-btn" title="Top View">⬆️ Top</button>
-              <button id="view-side" class="view-btn" title="Side View">↔️ Side</button>
-              <button id="view-reset" class="view-btn active" title="Reset View">🔄 Reset</button>
-              <label id="true-pos-toggle-container" class="toggle-label" style="display: none;">
-                <input type="checkbox" id="show-true-position" checked />
-                <span>Show True Position</span>
-              </label>
-            </div>
-          </div>
-          <div id="scene" class="scene-container"></div>
-          <div class="scene-info">
-            <div id="position-display" class="info-item">
-              <strong>Position:</strong> <span id="pos-text">—</span>
-            </div>
-            <div id="confidence-display" class="info-item">
-              <strong>Confidence:</strong> <span id="conf-text">—</span>
-            </div>
-          </div>
-        </section>
 
-        <!-- Data Panel -->
-        <section class="panel data-panel">
-          <!-- Node Status Table -->
-          <div class="telemetry-section">
-            <h2>Node Status</h2>
-            <div id="telemetry">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Node ID</th>
-                    <th>Energy</th>
-                    <th>Direction (X,Y,Z)</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody id="node-table"></tbody>
-              </table>
-            </div>
+      <div class="workspace">
+        <div class="tab-nav">
+          <button class="tab-btn active" data-tab-target="tracking">
+            Tracking
+          </button>
+          <button class="tab-btn" data-tab-target="calibration">
+            Microphone Calibration
+          </button>
+        </div>
+
+        <div class="tab-panels">
+          <div class="tab-panel active" data-tab-panel="tracking">
+            <main>
+              <!-- 3D Visualization Panel -->
+              <section class="panel scene-panel">
+                <div class="panel-header">
+                  <h2>3D Position Tracking</h2>
+                  <div class="view-controls">
+                    <button id="view-top" class="view-btn" title="Top View">
+                      ⬆️ Top
+                    </button>
+                    <button id="view-side" class="view-btn" title="Side View">
+                      ↔️ Side
+                    </button>
+                    <button
+                      id="view-reset"
+                      class="view-btn active"
+                      title="Reset View"
+                    >
+                      🔄 Reset
+                    </button>
+                    <label
+                      id="true-pos-toggle-container"
+                      class="toggle-label"
+                      style="display: none"
+                    >
+                      <input type="checkbox" id="show-true-position" checked />
+                      <span>Show True Position</span>
+                    </label>
+                  </div>
+                </div>
+                <div id="scene" class="scene-container"></div>
+                <div class="scene-info">
+                  <div id="position-display" class="info-item">
+                    <strong>Position:</strong> <span id="pos-text">—</span>
+                  </div>
+                  <div id="confidence-display" class="info-item">
+                    <strong>Confidence:</strong> <span id="conf-text">—</span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Data Panel -->
+              <section class="panel data-panel">
+                <!-- Node Status Table -->
+                <div class="telemetry-section">
+                  <h2>Node Status</h2>
+                  <div id="telemetry">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Node ID</th>
+                          <th>Energy</th>
+                          <th>Direction (X,Y,Z)</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="node-table"></tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="charts-section">
+                  <div class="chart-container">
+                    <h3>Total Energy</h3>
+                    <div id="energy-chart" class="chart"></div>
+                  </div>
+                  <div class="chart-container">
+                    <h3>Localization Confidence</h3>
+                    <div id="confidence-chart" class="chart"></div>
+                  </div>
+                </div>
+              </section>
+            </main>
           </div>
 
-          <!-- Charts Section -->
-          <div class="charts-section">
-            <div class="chart-container">
-              <h3>Total Energy</h3>
-              <div id="energy-chart" class="chart"></div>
-            </div>
-            <div class="chart-container">
-              <h3>Localization Confidence</h3>
-              <div id="confidence-chart" class="chart"></div>
-            </div>
+          <div class="tab-panel" data-tab-panel="calibration">
+            <section class="calibration-panel">
+              <div class="calibration-hero glass-card">
+                <div class="hero-text">
+                  <h2>Microphone Calibration</h2>
+                  <p>
+                    Quiet room, steady drones. Nodes record ambient noise to
+                    lock in a clean baseline. Keep voices down while the bars
+                    fill up.
+                  </p>
+                </div>
+                <div class="calibration-controls">
+                  <div class="duration-control glass-card subtle">
+                    <label for="calibration-duration">Sampling window</label>
+                    <div class="duration-input">
+                      <input
+                        type="range"
+                        id="calibration-duration"
+                        min="15"
+                        max="180"
+                        step="5"
+                      />
+                      <span id="calibration-duration-value">60s</span>
+                    </div>
+                    <small
+                      >Longer windows reduce variance but take more time.</small
+                    >
+                  </div>
+                  <button id="calibrate-all" class="glass-btn">
+                    Calibrate all nodes
+                  </button>
+                </div>
+                <div class="summary-stats">
+                  <div>
+                    <span class="label">Running</span>
+                    <strong id="calibration-running-count">0</strong>
+                  </div>
+                  <div>
+                    <span class="label">Calibrated</span>
+                    <strong id="calibration-complete-count">0</strong>
+                  </div>
+                  <div>
+                    <span class="label">Attention</span>
+                    <strong id="calibration-failed-count">0</strong>
+                  </div>
+                  <div>
+                    <span class="label">Config root</span>
+                    <strong id="calibration-config-dir">configs</strong>
+                  </div>
+                </div>
+                <div id="calibration-flash" class="calibration-flash"></div>
+              </div>
+              <div id="calibration-cards" class="calibration-cards"></div>
+            </section>
           </div>
-        </section>
-      </main>
+        </div>
+      </div>
 
       <footer>
         <div class="footer-content">
